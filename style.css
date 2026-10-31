@@ -356,3 +356,6 @@ body {
     cursor: pointer;
     text-align: center;
 }
+.about-image {
+    min-height: 300px;
+}
