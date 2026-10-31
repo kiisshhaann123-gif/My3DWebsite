@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My 3D Website</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <h2 class="logo">MY WEBSITE</h2>
+
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+
+    <!-- Header / Hero Section -->
+    <header id="home" class="hero">
+
+        <div id="hero-3d"></div>
+
+    </header>
+
+
+    <!-- About Section -->
+    <section id="about" class="content-section">
+    <div class="about-content">
+        <div class="about-text">
+            <h1>About Me</h1>
+            <p>
+                Hello! Welcome to my portfolio.
+                I am passionate about technology, creativity,
+                and building amazing digital experiences.
+            </p>
+        </div>
+
+        <div class="about-image">
+            <img src="./images/profile.jpg" alt="My profile photo">
+        </div>
+    </div>
+    </section>
+
+
+    <!-- Projects Section -->
+<section id="projects" class="content-section">
+    <h1>My Projects</h1>
+
+    <div class="projects-container">
+
+        <!-- Weather App -->
+        <a href="https://weatherapp-khwccjl9wbkptvxkye5d75.streamlit.app/" target="_blank" rel="noopener noreferrer" class="project-card">
+
+            <div class="project-image">
+                <img src="./images/weather-app.png" alt="Weather App">
+            </div>
+
+            <h2>Weather App</h2>
+            <p>A weather application displaying real-time weather information.</p>
+
+        </a>
+
+        <!-- Digital Clock -->
+        <div class="project-card">
+            <div class="project-image">
+                <img src="./images/digital-clock.png" alt="Digital Clock">
+            </div>
+            <h2>Digital Clock</h2>
+            <p>A digital clock displaying the current time with a clean interface.</p>
+        </div>
+
+        <!-- Stopwatch -->
+        <div class="project-card">
+            <div class="project-image">
+                <img src="./images/stop-watch.png" alt="Stopwatch">
+            </div>
+            <h2>Stopwatch</h2>
+            <p>A stopwatch application with start, pause, and reset functionality.</p>
+        </div>
+
+        <!-- 3D Portfolio -->
+        <div class="project-card">
+            <div class="project-image">
+                <img src="./images/3d-portfolio.png" alt="3D Portfolio Website">
+            </div>
+            <h2>3D Portfolio Website</h2>
+            <p>An interactive personal portfolio featuring 3D models and animations.</p>
+        </div>
+
+    </div>
+</section>
+
+
+    <!-- Contact Section -->
+<section id="contact" class="content-section contact-section">
+
+    <div class="contact-heading">
+        <h1>Let's Work Together</h1>
+        <p>Have an idea or a project in mind? I'd love to hear from you.</p>
+    </div>
+
+    <div class="contact-layout">
+
+        <div class="contact-info">
+            <h2>Get in Touch</h2>
+            <p>Feel free to reach out. I'm always open to discussing new projects and opportunities.</p>
+
+            <div class="contact-detail">
+                <span>✉</span>
+                <div>
+                    <h3>Email</h3>
+                    <p>kiisshhaann12@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="contact-detail">
+                <span>📍</span>
+                <div>
+                    <h3>Location</h3>
+                    <p>Kathmandu, Nepal</p>
+                </div>
+            </div>
+        </div>
+
+        <form id="contact-form" class="contact-form">
+
+            <input type="text" placeholder="Your Name" required>
+
+            <input type="email" placeholder="Your Email" required>
+
+            <input type="text" placeholder="Subject">
+
+            <textarea placeholder="Tell me about your project..." rows="6" required></textarea>
+
+            <button type="submit">Send Message →</button>
+
+        </form>
+
+    </div>
+</section>
+
+
+    <script type="module" src="./script.js"></script>
+
+</body>
+</html>
