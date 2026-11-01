@@ -11,7 +11,7 @@ html {
 
 body {
     font-family: Arial, sans-serif;
-    background: #f5f5f5;
+    background: #DCE6F0;
 }
 
 /* Navigation Bar */
@@ -86,7 +86,7 @@ body {
 .content-section {
     min-height: 300px;
     padding: 80px 60px;
-    background: white;
+    background: transparent;
     border-bottom: 1px solid #ddd;
 }
 
@@ -934,4 +934,255 @@ body {
     color: #c5c5d2;
     font-size: 14px;
     border-top: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+/* Little Dino Companion */
+#dino-companion {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 230px;
+    height: 230px;
+    z-index: 2000;
+
+    /* Dottie's home position */
+    transform: translate(0px, 0px) scale(1);
+    transform-origin: bottom center;
+
+    /* Smooth walking and scaling */
+    transition: transform 2s ease-in-out;
+}
+#dino-message {
+    position: fixed;
+    pointer-events: none;
+    width: 230px;
+    padding: 35px 25px;
+
+    background: #fffaff;
+    color: #51406f;
+
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: center;
+
+    border: 3px solid #d8baff;
+    border-radius: 45% 45% 42% 42% / 55% 55% 45% 45%;
+
+    box-shadow:
+        0 0 12px rgba(190, 145, 255, 0.65),
+        0 0 28px rgba(170, 120, 255, 0.5),
+        0 0 45px rgba(190, 145, 255, 0.3);
+
+    display: none;
+    z-index: 100001;
+
+    animation: dinoBubblePop 0.35s ease-out;
+}
+
+/* Puffy cloud bumps */
+#dino-message::before {
+    content: "";
+    position: absolute;
+    width: 65px;
+    height: 65px;
+    top: -22px;
+    left: 35px;
+
+    background: #fffaff;
+    border-top: 3px solid #d8baff;
+    border-left: 3px solid #d8baff;
+    border-radius: 50%;
+
+    z-index: -1;
+}
+
+/* Three little speaking dots */
+#dino-message::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    bottom: -35px;
+    left: 35px;
+
+    background: #d8baff;
+    border-radius: 50%;
+
+    box-shadow:
+        12px 17px 0 -2px #d8baff,
+        22px 30px 0 -4px #d8baff;
+}
+
+@keyframes dinoBubblePop {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+#dino-menu {
+    position: fixed;
+    width: 210px;
+    padding: 15px;
+    background: linear-gradient(145deg, #ffffff, #f5edff);
+    border: 2px solid #c9a8f5;
+    border-radius: 18px;
+    box-shadow:
+    0 0 12px rgba(190, 145, 255, 0.45),
+    0 0 25px rgba(170, 120, 255, 0.35),
+    0 8px 30px rgba(100, 65, 150, 0.25);
+    display: none;
+    z-index: 99999;
+    pointer-events: auto;
+    transform-origin: bottom center;
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+#dino-menu.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    animation: dinoMenuFloat 3s ease-in-out infinite;
+
+}
+@keyframes dinoMenuFloat {
+    0%, 100% {
+        translate: 0 0;
+    }
+
+    50% {
+        translate: 0 -5px;
+    }
+}
+
+#dino-menu button {
+    display: block;
+    position: relative;
+    width: 100%;
+    margin: 6px 0;
+    padding: 10px;
+    border: none;
+    border-radius: 12px;
+    background: #eee5ff;
+    color: #51406f;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+#dino-menu button:hover {
+    background: #e2d1ff;
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(170, 120, 255, 0.6);
+}
+
+#dino-menu button.active {
+    background: linear-gradient(135deg, #c9a8ff, #eadcff);
+    color: #39245c;
+    box-shadow:
+        0 0 12px rgba(170, 120, 255, 0.7),
+        0 0 22px rgba(170, 120, 255, 0.4);
+    border: 1px solid #a879ef;
+}
+
+#dino-fire {
+    position: fixed;
+    display: none;
+    width: 150px;
+    height: 50px;
+    z-index: 3000;
+    pointer-events: none;
+    transform: scaleX(-1);
+}
+
+/* Main fire plume */
+#dino-fire .flame {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 145px;
+    height: 30px;
+    transform: translateY(-50%);
+    transform-origin: right center;
+
+    background: linear-gradient(
+        to left,
+        #fffde0 0%,
+        #fff2a0 12%,
+        #ffc12e 30%,
+        #ff7417 55%,
+        #e52c08 78%,
+        transparent 100%
+    );
+
+    clip-path: polygon(
+        100% 25%,
+        82% 5%,
+        65% 20%,
+        45% 0%,
+        30% 30%,
+        0% 50%,
+        30% 70%,
+        48% 100%,
+        70% 75%,
+        88% 95%
+    );
+
+    filter: blur(2px) drop-shadow(0 0 8px #ff6500);
+
+    animation: dragonFire 0.18s infinite alternate;
+}
+
+/* Bright inner core */
+#dino-fire .flame::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 35%;
+    width: 75%;
+    height: 30%;
+
+    background: linear-gradient(
+        to left,
+        #ffffff,
+        #fff6a0,
+        #ffd23f,
+        transparent
+    );
+
+    border-radius: 50%;
+    filter: blur(3px);
+}
+
+/* Additional flickering tongues */
+#dino-fire .flame:nth-child(2) {
+    top: 30%;
+    width: 110px;
+    height: 20px;
+    animation-delay: 0.08s;
+}
+
+#dino-fire .flame:nth-child(3) {
+    top: 70%;
+    width: 120px;
+    height: 23px;
+    animation-delay: 0.13s;
+}
+
+@keyframes dragonFire {
+    0% {
+        scale: 0.92 0.85;
+        opacity: 0.85;
+    }
+
+    100% {
+        scale: 1.08 1.15;
+        opacity: 1;
+    }
 }
