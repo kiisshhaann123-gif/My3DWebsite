@@ -519,10 +519,10 @@ loader.load(
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
 
-        const maxDimension = Math.max(size.x, size.y, size.z);
-        const scale = 2.3 / maxDimension;
+        const mobileScale = window.innerWidth <= 600 ? 0.65 : 1;
 
-        dino.scale.setScalar(scale);
+        const scale = (2.3 / maxDimension) * mobileScale;
+        dinoModel.scale.setScalar(scale);
         dino.position.copy(center).multiplyScalar(-scale);
 
         dinoBaseY = dino.position.y;
