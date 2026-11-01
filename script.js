@@ -422,7 +422,13 @@ const dinoCamera = new THREE.PerspectiveCamera(
     100
 );
 
-dinoCamera.position.set(0, 0, 5);
+const isMobile = window.innerWidth <= 600;
+
+dinoCamera.position.set(
+    0,
+    0,
+    isMobile ? 6.5 : 5
+);
 
 const dinoRenderer = new THREE.WebGLRenderer({
     alpha: true,
@@ -518,10 +524,9 @@ loader.load(
         const box = new THREE.Box3().setFromObject(dino);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
+        const maxDimension = Math.max(size.x, size.y, size.z);
 
-        const mobileScale = window.innerWidth <= 600 ? 0.65 : 1;
-
-        const scale = (2.3 / maxDimension) * mobileScale;
+        const scale = 2.3 / maxDimension;
         dinoModel.scale.setScalar(scale);
         dino.position.copy(center).multiplyScalar(-scale);
 
