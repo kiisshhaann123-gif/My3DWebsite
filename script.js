@@ -112,7 +112,7 @@ function animate() {
 animate();
 // SCROLL ANIMATIONS
 
-const sections = document.querySelectorAll(".content-section");
+const sections = document.querySelectorAll(".content-section, .hidden");
 
 const observer = new IntersectionObserver((entries) => {
 
@@ -120,6 +120,8 @@ const observer = new IntersectionObserver((entries) => {
 
         if (entry.isIntersecting) {
             entry.target.classList.add("show");
+
+            console.log("Animation triggered:", entry.target);
         }
 
     });
@@ -393,4 +395,88 @@ document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
         closeVideo();
     }
+});
+
+// CONTACT FORM SUBMISSION
+
+const contactForm = document.getElementById("contact-form");
+const formStatus = document.getElementById("form-status");
+
+contactForm.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const formData = new FormData(contactForm);
+
+    try {
+        const response = await fetch(contactForm.action, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "Accept": "application/json"
+            }
+        });
+
+        if (response.ok) {
+            formStatus.textContent =
+                "Thank you! Your message has been sent successfully. I'll get back to you soon.";
+
+            formStatus.style.color = "#00c853";
+
+            contactForm.reset();
+        } else {
+            formStatus.textContent =
+                "Oops! Something went wrong. Please try again.";
+
+            formStatus.style.color = "red";
+        }
+
+    } catch (error) {
+        formStatus.textContent =
+            "Unable to send your message. Please check your internet connection.";
+
+        formStatus.style.color = "red";
+    }
+
+});
+// BACK TO TOP BUTTON
+
+const backToTopButton = document.getElementById("back-to-top");
+
+// Show button when scrolling down
+window.addEventListener("scroll", function() {
+
+    if (window.scrollY > 300) {
+        backToTopButton.classList.add("show");
+    } else {
+        backToTopButton.classList.remove("show");
+    }
+
+});
+
+// Scroll smoothly to the top when clicked
+backToTopButton.addEventListener("click", function() {
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+});
+// SCROLL PROGRESS BAR
+
+const scrollProgress = document.getElementById("scroll-progress");
+
+window.addEventListener("scroll", function() {
+
+    const scrollTop = window.scrollY;
+
+    const documentHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+    const scrollPercentage =
+        (scrollTop / documentHeight) * 100;
+
+    scrollProgress.style.width = scrollPercentage + "%";
+
 });
