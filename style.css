@@ -1186,3 +1186,155 @@ body {
         opacity: 1;
     }
 }
+/* Realistic fire rising from the bottom */
+#page-fire {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 45vh;
+    z-index: 1500;
+    pointer-events: none;
+    opacity: 0;
+
+    background:
+        radial-gradient(ellipse at 10% 100%, #ff3b08 0%, transparent 45%),
+        radial-gradient(ellipse at 35% 100%, #ff8c00 0%, transparent 50%),
+        radial-gradient(ellipse at 65% 100%, #ff4500 0%, transparent 48%),
+        radial-gradient(ellipse at 90% 100%, #ffae00 0%, transparent 45%),
+        linear-gradient(to top, rgba(180, 15, 0, 0.9), transparent 85%);
+
+    transition: opacity 0.2s ease;
+    overflow: hidden;
+}
+
+/* Flickering flame tongues */
+#page-fire::before {
+    content: "";
+    position: absolute;
+    left: -5%;
+    bottom: -15%;
+    width: 110%;
+    height: 100%;
+
+    background:
+        radial-gradient(ellipse at 10% 100%, #ffcf33 0%, #ff5a00 35%, transparent 70%),
+        radial-gradient(ellipse at 30% 100%, #fff06a 0%, #ff6a00 35%, transparent 70%),
+        radial-gradient(ellipse at 50% 100%, #ffb52e 0%, #ff3500 40%, transparent 70%),
+        radial-gradient(ellipse at 70% 100%, #ffe05a 0%, #ff5a00 35%, transparent 70%),
+        radial-gradient(ellipse at 90% 100%, #ffbd32 0%, #ff3500 40%, transparent 70%);
+
+    filter: blur(8px);
+    animation: flamesMove 0.5s infinite alternate;
+}
+
+/* Small glowing sparks */
+#page-fire::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background-image:
+        radial-gradient(circle, #fff6a0 1px, transparent 3px),
+        radial-gradient(circle, #ffb000 2px, transparent 4px),
+        radial-gradient(circle, #ff4a00 1px, transparent 3px);
+
+    background-size: 90px 100px, 130px 140px, 170px 120px;
+    background-position: 10px 0, 50px 30px, 90px 10px;
+
+    animation: sparksRise 1s linear infinite;
+}
+
+#page-fire.burning {
+    opacity: 1;
+    animation: pageBurn 0.3s infinite alternate;
+}
+
+@keyframes flamesMove {
+    from {
+        transform: translateY(8px) scaleY(0.9);
+    }
+    to {
+        transform: translateY(-12px) scaleY(1.15);
+    }
+}
+
+@keyframes sparksRise {
+    from {
+        background-position: 10px 100px, 50px 140px, 90px 120px;
+    }
+    to {
+        background-position: 10px -100px, 50px -140px, 90px -120px;
+    }
+}
+
+@keyframes pageBurn {
+    from {
+        filter: brightness(1) saturate(1.2);
+    }
+    to {
+        filter: brightness(1.35) saturate(1.8);
+    }
+}
+
+/* Realistic rising flames */
+.page-flames {
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    overflow: hidden;
+}
+
+.page-flames::before,
+.page-flames::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 85%;
+    background:
+        radial-gradient(ellipse at 10% 100%, #fff5a0 0%, #ffb000 20%, #ff4a00 45%, transparent 70%),
+        radial-gradient(ellipse at 35% 100%, #fff8b0 0%, #ff9d00 25%, #f52d00 50%, transparent 72%),
+        radial-gradient(ellipse at 60% 100%, #fff2a0 0%, #ffb000 25%, #ff3500 50%, transparent 72%),
+        radial-gradient(ellipse at 85% 100%, #fff5a0 0%, #ff8c00 25%, #ed2800 50%, transparent 72%);
+    background-size: 35% 100%, 30% 100%, 35% 100%, 30% 100%;
+    background-repeat: no-repeat;
+    background-position: 0 bottom, 25% bottom, 55% bottom, 80% bottom;
+    filter: blur(5px);
+    animation: flameRise 0.7s infinite alternate ease-in-out;
+}
+
+.page-flames::after {
+    animation-delay: 0.35s;
+    transform: scaleX(-1);
+    opacity: 0.04;
+    filter: blur(2px);
+}
+
+@keyframes flameRise {
+    0% {
+        transform: scaleY(0.8) skewX(-3deg);
+    }
+    50% {
+        transform: scaleY(1.05) skewX(3deg);
+    }
+    100% {
+        transform: scaleY(0.9) skewX(-2deg);
+    }
+}
+
+/* Canvas for realistic fire particles */
+#fire-canvas {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+}

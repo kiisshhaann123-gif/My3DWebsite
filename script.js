@@ -1,6 +1,10 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import {
+    startRealisticFire,
+    stopRealisticFire
+} from "./fire.js";
 
 // Little Dino Companion
 const dinoContainer = document.getElementById('dino-companion');
@@ -797,17 +801,30 @@ dinoContainer.addEventListener("dblclick", () => {
     fire.style.left = `${dinoRect.left - 75}px`;
     fire.style.top = `${dinoRect.top + 80}px`;
     fire.style.display = "block";
+    // Start the realistic page fire
+    startRealisticFire();
+    // Make the page look like it's burning
+    const pageFire = document.getElementById("page-fire");
 
-    // Stop the fire after 3 seconds
+    pageFire.classList.add("burning");
+
+    // Remove the page fire effect after 2 seconds
+   // Stop all fire effects after 2 seconds
     setTimeout(() => {
 
         fire.style.display = "none";
         dinoMessage.style.display = "none";
 
+        // Stop the realistic page fire
+        stopRealisticFire();
+
+        // Remove the page-burning effect
+        pageFire.classList.remove("burning");
+
         // Turn Dottie back toward the visitor
         dinoModel.rotation.y = -Math.PI / 2;
 
-    }, 3000);
+    }, 2000);
 
 });
 // SCROLL ANIMATIONS
