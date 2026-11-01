@@ -27,3 +27,8 @@ body {
     color: hsl(114, 98%, 50%);
     font-weight: bold;
 }
+@media (max-width: 600px) {
+    #clock {
+        font-size: 45px;
+    }
+}

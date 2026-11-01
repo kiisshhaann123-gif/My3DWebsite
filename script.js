@@ -131,3 +131,266 @@ const observer = new IntersectionObserver((entries) => {
 sections.forEach((section) => {
     observer.observe(section);
 });
+
+
+// ART GALLERY CATEGORY SWITCHING
+
+const galleryTabs = document.querySelectorAll(".gallery-tab");
+const galleryContents = document.querySelectorAll(".gallery-content");
+
+galleryTabs.forEach((tab) => {
+
+    tab.addEventListener("click", () => {
+
+        // Remove active status from all tabs
+        galleryTabs.forEach((item) => {
+            item.classList.remove("active");
+        });
+
+        // Hide all gallery contents
+        galleryContents.forEach((content) => {
+            content.classList.remove("active");
+        });
+
+        // Activate clicked tab
+        tab.classList.add("active");
+
+        // Show selected category
+        const category = tab.dataset.category;
+
+        document.getElementById(category).classList.add("active");
+
+    });
+
+});
+// ARTWORK LIGHTBOX
+// ARTWORK LIGHTBOX WITH PREVIOUS AND NEXT
+
+const artImages = document.querySelectorAll(
+    ".gallery-grid .art-card img"
+);
+
+const lightbox = document.getElementById("art-lightbox");
+const lightboxImage = document.getElementById("lightbox-image");
+// DETECT TOUCH START
+lightbox.addEventListener("touchstart", (event) => {
+    touchStartX = event.changedTouches[0].screenX;
+});
+
+// DETECT TOUCH END
+lightbox.addEventListener("touchend", (event) => {
+    touchEndX = event.changedTouches[0].screenX;
+
+    handleSwipe();
+});
+const closeLightbox = document.querySelector(".lightbox-close");
+
+const prevButton = document.getElementById("prev-art");
+const nextButton = document.getElementById("next-art");
+const artCaption = document.getElementById("art-caption");
+const playButton = document.getElementById("play-art");
+const pauseButton = document.getElementById("pause-art");
+// PLAY BUTTON
+playButton.addEventListener("click", startSlideshow);
+
+// PAUSE BUTTON
+pauseButton.addEventListener("click", pauseSlideshow);
+
+let slideshowInterval = null;
+
+let currentImages = [];
+let currentIndex = 0;
+// MOBILE SWIPE NAVIGATION
+
+let touchStartX = 0;
+let touchEndX = 0;
+
+// OPEN ARTWORK
+artImages.forEach((image) => {
+
+    image.addEventListener("click", () => {
+
+        const gallery = image.closest(".gallery-content");
+
+        currentImages = Array.from(
+            gallery.querySelectorAll(".art-card img")
+        );
+
+        currentIndex = currentImages.indexOf(image);
+
+        showArtwork();
+
+        lightbox.classList.add("active");
+
+    });
+
+});
+
+// DISPLAY SELECTED ARTWORK
+function showArtwork() {
+
+    lightboxImage.src = currentImages[currentIndex].src;
+
+    artCaption.textContent =
+        `${currentImages[currentIndex].alt} — ${currentIndex + 1} of ${currentImages.length}`;
+
+}
+// HANDLE MOBILE SWIPES
+function handleSwipe() {
+
+    const swipeDistance = touchEndX - touchStartX;
+
+    // Ignore small finger movements
+    if (Math.abs(swipeDistance) < 50) {
+        return;
+    }
+
+    // Swipe left = Next artwork
+    if (swipeDistance < 0) {
+        nextButton.click();
+    }
+
+    // Swipe right = Previous artwork
+    if (swipeDistance > 0) {
+        prevButton.click();
+    }
+
+}
+// START SLIDESHOW
+function startSlideshow() {
+
+    if (slideshowInterval !== null) {
+        return;
+    }
+
+    slideshowInterval = setInterval(() => {
+        currentIndex++;
+
+        if (currentIndex >= currentImages.length) {
+            currentIndex = 0;
+        }
+
+        showArtwork();
+
+    }, 3000);
+}
+
+
+// PAUSE SLIDESHOW
+function pauseSlideshow() {
+
+    clearInterval(slideshowInterval);
+    slideshowInterval = null;
+
+}
+
+
+// NEXT ARTWORK
+nextButton.addEventListener("click", () => {
+
+    currentIndex++;
+
+    if (currentIndex >= currentImages.length) {
+        currentIndex = 0;
+    }
+
+    showArtwork();
+
+});
+
+// PREVIOUS ARTWORK
+prevButton.addEventListener("click", () => {
+
+    currentIndex--;
+
+    if (currentIndex < 0) {
+        currentIndex = currentImages.length - 1;
+    }
+
+    showArtwork();
+
+});
+
+// CLOSE LIGHTBOX
+function closeArtwork() {
+    pauseSlideshow();
+    lightbox.classList.remove("active");
+}
+
+
+closeLightbox.addEventListener("click", closeArtwork);
+
+lightbox.addEventListener("click", (event) => {
+
+    if (event.target === lightbox) {
+        closeArtwork();
+    }
+
+});
+
+// KEYBOARD NAVIGATION
+document.addEventListener("keydown", (event) => {
+
+    if (!lightbox.classList.contains("active")) {
+        return;
+    }
+
+    if (event.key === "ArrowRight") {
+        nextButton.click();
+    }
+
+    if (event.key === "ArrowLeft") {
+        prevButton.click();
+    }
+
+    if (event.key === "Escape") {
+        closeArtwork();
+    }
+
+});
+
+
+// VIDEO LIGHTBOX
+
+const videos = document.querySelectorAll(".video-card video");
+
+const videoLightbox = document.getElementById("video-lightbox");
+const lightboxVideo = document.getElementById("lightbox-video");
+const closeVideoLightbox = document.querySelector(".video-lightbox-close");
+
+videos.forEach((video) => {
+    video.addEventListener("click", (event) => {
+
+        event.preventDefault();
+
+        const videoSource = video.querySelector("source").src;
+
+        lightboxVideo.src = videoSource;
+        videoLightbox.classList.add("active");
+
+        lightboxVideo.play();
+
+    });
+});
+
+function closeVideo() {
+    lightboxVideo.pause();
+    lightboxVideo.removeAttribute("src");
+    lightboxVideo.load();
+
+    videoLightbox.classList.remove("active");
+}
+
+closeVideoLightbox.addEventListener("click", closeVideo);
+
+videoLightbox.addEventListener("click", (event) => {
+    if (event.target === videoLightbox) {
+        closeVideo();
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+        closeVideo();
+    }
+});
