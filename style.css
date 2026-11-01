@@ -21,32 +21,51 @@ body {
     z-index: 1000;
 
     height: 75px;
-    background: #171923;
+    background: rgba(23, 25, 35, 0.92);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+
     color: white;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 60px;
+
+    box-shadow: 0 4px 25px rgba(0, 212, 255, 0.08);
 }
 
 .logo {
     font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    background: linear-gradient(90deg, #a855f7, #00d4ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .navbar ul {
     display: flex;
     list-style: none;
-    gap: 35px;
+    gap: 15px;
 }
 
 .navbar a {
     color: white;
     text-decoration: none;
     font-size: 16px;
+    padding: 10px 18px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
 }
 
 .navbar a:hover {
-    color: #00d4ff;
+    color: #ffffff;
+    background: linear-gradient(135deg, #7b2ff7, #00d4ff);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+    transform: translateY(-3px);
 }
 
 /* Hero Section */
@@ -873,4 +892,46 @@ body {
     background: #00bcd4;
     z-index: 9999;
     transition: width 0.1s ease;
+}
+.logo img {
+    width: 65px;
+    height: 65px;
+    object-fit: contain;
+    border-radius: 50%;
+
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.6),
+                0 0 20px rgba(168, 85, 247, 0.35);
+}
+.projects-title {
+    text-align: center;
+    width: 100%;
+}
+
+.navbar a {
+    position: relative;
+}
+
+.navbar a::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 3px;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #a855f7, #00d4ff);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+    border-radius: 10px;
+}
+
+.navbar a:hover::after {
+    width: 60%;
+}
+.footer {
+    text-align: center;
+    padding: 20px;
+    background: #171923;
+    color: #c5c5d2;
+    font-size: 14px;
+    border-top: 1px solid rgba(0, 212, 255, 0.2);
 }
