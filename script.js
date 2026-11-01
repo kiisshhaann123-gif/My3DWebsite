@@ -429,7 +429,9 @@ const dinoRenderer = new THREE.WebGLRenderer({
     antialias: true
 });
 
-dinoRenderer.setSize(230, 230);
+const dinoSize = window.innerWidth <= 600 ? 140 : 230;
+
+dinoRenderer.setSize(dinoSize, dinoSize);
 dinoRenderer.setPixelRatio(window.devicePixelRatio);
 
 dinoContainer.appendChild(dinoRenderer.domElement);
