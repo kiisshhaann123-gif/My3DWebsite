@@ -422,22 +422,14 @@ const dinoCamera = new THREE.PerspectiveCamera(
     100
 );
 
-const isMobile = window.innerWidth <= 600;
-
-dinoCamera.position.set(
-    0,
-    0,
-    isMobile ? 6.5 : 5
-);
+dinoCamera.position.set(0, 0, 5);
 
 const dinoRenderer = new THREE.WebGLRenderer({
     alpha: true,
     antialias: true
 });
 
-const dinoSize = window.innerWidth <= 600 ? 140 : 230;
-
-dinoRenderer.setSize(dinoSize, dinoSize);
+dinoRenderer.setSize(230, 230);
 dinoRenderer.setPixelRatio(window.devicePixelRatio);
 
 dinoContainer.appendChild(dinoRenderer.domElement);
@@ -524,10 +516,11 @@ loader.load(
         const box = new THREE.Box3().setFromObject(dino);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
-        const maxDimension = Math.max(size.x, size.y, size.z);
 
+        const maxDimension = Math.max(size.x, size.y, size.z);
         const scale = 2.3 / maxDimension;
-        dinoModel.scale.setScalar(scale);
+
+        dino.scale.setScalar(scale);
         dino.position.copy(center).multiplyScalar(-scale);
 
         dinoBaseY = dino.position.y;
@@ -815,23 +808,22 @@ dinoContainer.addEventListener("dblclick", () => {
 
     pageFire.classList.add("burning");
 
-    // Remove the page fire effect after 2 seconds
-   // Stop all fire effects after 2 seconds
-    setTimeout(() => {
+// Stop all fire effects after 2 seconds
+setTimeout(() => {
 
-        fire.style.display = "none";
-        dinoMessage.style.display = "none";
+    fire.style.display = "none";
+    dinoMessage.style.display = "none";
 
-        // Stop the realistic page fire
-        stopRealisticFire();
+    // Stop the realistic page fire
+    stopRealisticFire();
 
-        // Remove the page-burning effect
-        pageFire.classList.remove("burning");
+    // Remove the page-burning effect
+    pageFire.classList.remove("burning");
 
-        // Turn Dottie back toward the visitor
-        dinoModel.rotation.y = -Math.PI / 2;
+    // Turn Dottie back toward the visitor
+    dinoModel.rotation.y = -Math.PI / 2;
 
-    }, 2000);
+}, 2000);
 
 });
 // SCROLL ANIMATIONS

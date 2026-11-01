@@ -1339,12 +1339,3 @@ body {
     pointer-events: none;
 }
 
-/* Make Dottie smaller on mobile devices */
-@media (max-width: 600px) {
-    #dino-companion {
-        width: 140px;
-        height: 140px;
-        right: 10px;
-        bottom: 10px;
-    }
-}
