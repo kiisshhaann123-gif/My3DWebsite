@@ -424,13 +424,20 @@ const dinoCamera = new THREE.PerspectiveCamera(
 
 dinoCamera.position.set(0, 0, 5);
 
+// ---- Mobile helpers ----
+const isMobile = () => window.innerWidth <= 768;
+const maxPixelRatio = () => Math.min(window.devicePixelRatio, isMobile() ? 1.5 : 2);
+// Dottie's size on screen (must match #dino-companion in style.css)
+const dinoSize = () => (isMobile() ? 150 : 230);
+
 const dinoRenderer = new THREE.WebGLRenderer({
     alpha: true,
-    antialias: true
+    antialias: !isMobile(),
+    powerPreference: "high-performance"
 });
 
-dinoRenderer.setSize(230, 230);
-dinoRenderer.setPixelRatio(window.devicePixelRatio);
+dinoRenderer.setPixelRatio(maxPixelRatio());
+dinoRenderer.setSize(dinoSize(), dinoSize());
 
 dinoContainer.appendChild(dinoRenderer.domElement);
 // Dottie's lighting
@@ -460,13 +467,28 @@ camera.position.set(0, 0, 7.8);
 
 // Create renderer
 const renderer = new THREE.WebGLRenderer({
-    antialias: true
+    antialias: !isMobile(),
+    powerPreference: "high-performance"
 });
 
+renderer.setPixelRatio(maxPixelRatio());
 renderer.setSize(
     container.clientWidth,
     container.clientHeight
 );
+
+// Keep the whole header model in view on narrow screens.
+// On a wide desktop hero nothing changes; on a tall/narrow phone
+// hero the camera moves back so the model scales down.
+const BASE_CAMERA_Z = 7.8;
+const WIDE_ASPECT = 2.2;   // at or above this aspect = desktop framing
+function fitHeroCamera() {
+    const aspect = container.clientWidth / container.clientHeight;
+    camera.aspect = aspect;
+    camera.position.z = BASE_CAMERA_Z * Math.max(1, WIDE_ASPECT / aspect);
+    camera.updateProjectionMatrix();
+}
+fitHeroCamera();
 
 container.appendChild(renderer.domElement);
 
@@ -650,17 +672,27 @@ loader.load(
 // Handle browser resizing
 window.addEventListener('resize', () => {
 
-    camera.aspect =
-        container.clientWidth / container.clientHeight;
+    fitHeroCamera();
 
-    camera.updateProjectionMatrix();
-
+    renderer.setPixelRatio(maxPixelRatio());
     renderer.setSize(
         container.clientWidth,
         container.clientHeight
     );
 
+    dinoRenderer.setPixelRatio(maxPixelRatio());
+    dinoRenderer.setSize(dinoSize(), dinoSize());
+
 });
+
+// Only render the hero while it is on screen, and stop 3D while a
+// video is playing in the lightbox (frees the GPU for video decoding).
+let heroVisible = true;
+new IntersectionObserver((entries) => {
+    heroVisible = entries[0].isIntersecting;
+}).observe(container);
+
+let pause3D = false;
 
 // Animation loop
 const clock = new THREE.Clock();
@@ -700,7 +732,11 @@ function animate() {
     // Let visitors click Dottie to make her wave
    
 
-    renderer.render(scene, camera);
+    if (pause3D || document.hidden) return;
+
+    if (heroVisible) {
+        renderer.render(scene, camera);
+    }
     dinoRenderer.render(dinoScene, dinoCamera);
 }
 
@@ -1085,6 +1121,7 @@ videos.forEach((video) => {
 
         lightboxVideo.src = videoSource;
         videoLightbox.classList.add("active");
+        pause3D = true;
 
         lightboxVideo.play();
 
@@ -1097,6 +1134,7 @@ function closeVideo() {
     lightboxVideo.load();
 
     videoLightbox.classList.remove("active");
+    pause3D = false;
 }
 
 closeVideoLightbox.addEventListener("click", closeVideo);
@@ -1195,4 +1233,23 @@ window.addEventListener("scroll", function() {
 
     scrollProgress.style.width = scrollPercentage + "%";
 
+});
+
+
+// LAZY-LOAD TIME-LAPSE VIDEOS
+// Only start fetching a video's metadata when it is near the screen,
+// so 20 videos don't compete for bandwidth/decoders on a phone.
+const lazyVideoObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+            const v = entry.target;
+            v.preload = "metadata";
+            v.load();
+            lazyVideoObserver.unobserve(v);
+        }
+    });
+}, { rootMargin: "300px" });
+
+document.querySelectorAll(".video-card video").forEach((v) => {
+    lazyVideoObserver.observe(v);
 });
