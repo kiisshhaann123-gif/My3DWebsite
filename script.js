@@ -586,6 +586,28 @@ loader.load(
         blinkAction.setLoop(THREE.LoopRepeat, Infinity);
         blinkAction.play();
 
+        // Fire-breath animation baked into the GLB (name contains
+        // fire / flame / breath). Check the "Dottie animations" log.
+        const fireClip = gltf.animations.find(
+            (clip) => /fire|flame|breath/i.test(clip.name)
+        );
+        // Hide the fire meshes until she actually breathes fire. They are
+        // skinned with ~140 bones, which is costly to draw on phones.
+        dino.traverse((child) => {
+            if (child.isMesh && /^Dino_Fire_mesh/.test(child.name)) {
+                dinoFireMeshes.push(child);
+                child.visible = false;
+            }
+        });
+
+        if (fireClip) {
+            dinoFireAction = dinoMixer.clipAction(fireClip);
+            dinoFireAction.setLoop(THREE.LoopRepeat, Infinity);
+            console.log("Dottie's fire animation found:", fireClip.name);
+        } else {
+            console.log("No fire clip in the GLB - using the CSS flame.");
+        }
+
         console.log("Dottie has arrived!");
         // Show a random message every 30 seconds
         setInterval(() => {
@@ -632,6 +654,8 @@ const dinoHome = {
 };
 let dinoWaveAction;
 let dinoWalkAction;
+let dinoFireMeshes = [];
+let dinoFireAction;   // fire-breath clip inside the GLB (if it has one)
 let nextWaveTime = 0;
 
 loader.load(
@@ -834,9 +858,35 @@ dinoContainer.addEventListener("dblclick", () => {
     `;
 
     // Position the fire near Dottie's mouth
-    fire.style.left = `${dinoRect.left - 75}px`;
-    fire.style.top = `${dinoRect.top + 80}px`;
-    fire.style.display = "block";
+    // The flame was designed for Dottie at 230px, so scale it with her
+    // current on-screen size (smaller on phones / during her tour walk).
+    const fireRatio = dinoRect.width / 230;
+
+    // The flame box is 150x50 and scales around its centre, so keep the
+    // centre at the same spot relative to Dottie's mouth.
+    // Where the flame starts, as a fraction of Dottie's on-screen box
+    // (0,0 = top-left, 1,1 = bottom-right). Nudge these to line it up:
+    //   FIRE_MOUTH_Y smaller = flame moves UP, larger = DOWN
+    //   FIRE_MOUTH_X smaller = flame moves LEFT, larger = RIGHT
+    const FIRE_MOUTH_X = 0;
+    const FIRE_MOUTH_Y = 0.38;
+
+    fire.style.left =
+        `${dinoRect.left + dinoRect.width * FIRE_MOUTH_X - 75}px`;
+    fire.style.top =
+        `${dinoRect.top + dinoRect.height * FIRE_MOUTH_Y - 25}px`;
+    fire.style.transform = `scale(${-fireRatio}, ${fireRatio})`;
+
+    if (dinoFireAction) {
+        // The flame is part of Dottie's model, so it scales with her
+        // automatically. No CSS flame needed.
+        fire.style.display = "none";
+        dinoFireMeshes.forEach((m) => { m.visible = true; });
+        dinoFireAction.reset();
+        dinoFireAction.play();
+    } else {
+        fire.style.display = "block";
+    }
     // Start the realistic page fire
     startRealisticFire();
     // Make the page look like it's burning
@@ -849,6 +899,11 @@ setTimeout(() => {
 
     fire.style.display = "none";
     dinoMessage.style.display = "none";
+
+    if (dinoFireAction) {
+        dinoFireAction.stop();
+        dinoFireMeshes.forEach((m) => { m.visible = false; });
+    }
 
     // Stop the realistic page fire
     stopRealisticFire();
