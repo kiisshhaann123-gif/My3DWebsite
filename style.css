@@ -116,6 +116,7 @@ body {
     font-size: 18px;
     line-height: 1.7;
     color: #555;
+    text-align: justify;
 }
 
 .about-image {
