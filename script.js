@@ -59,16 +59,16 @@ const tourHeadingSelectors = {
 };
 // What Dottie says at each website section
 const tourMessages = {
-    home: "Welcome to my little world! 🦕",
-    about: "Here's a little introduction to my human! 💜",
+    home: "Welcome to my little spiez's world! 🦕",
+    about: "Here's a little introduction to my spiez! 💜",
     projects: "Look at all these cool creations! ✨",
-    gallery: "Welcome to the art corner! So much creativity! 🎨",
-    contact: "Want to say hello? My human would love that! 💌"
+    gallery: "Welcome to the art corner! 🎨",
+    contact: "Want to say hello? My spiez would love that! 💌"
 };
 // Dottie's destination hover previews
 const dinoPreviewMessages = {
     home: "Let's head home! 🏠",
-    about: "Want to meet my human? 💜",
+    about: "Want to meet my spiez? 💜",
     projects: "Ooh, exciting creations ahead! 🚀",
     gallery: "Time for some colourful art! 🎨",
     contact: "Let's say hello! 💌"
