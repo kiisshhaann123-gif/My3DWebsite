@@ -1564,3 +1564,82 @@ body {
     color: #252b3b;
     font-size: 16px;
 }
+
+/* ================= 3D ASSETS: arrows, FUN LINGO link ================= */
+
+.asset-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(37, 43, 59, 0.15);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    color: #252b3b;
+    font-size: 24px;
+    line-height: 34px;
+    text-align: center;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: 0.2s ease;
+}
+
+.asset-nav:hover { background: #252b3b; color: white; }
+.asset-nav-prev { left: 12px; }
+.asset-nav-next { right: 12px; }
+
+.asset-link {
+    display: inline-block;
+    margin: 0 16px 20px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #7b2ff7, #00d4ff);
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+.asset-link:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(123, 47, 247, 0.3); }
+.asset-link i { margin: 0 4px; font-size: 12px; }
+
+/* ================= PHONES ================= */
+@media (max-width: 768px) {
+    /* gallery uses (almost) the full width of the phone */
+    #gallery.content-section { padding-left: 10px; padding-right: 10px; }
+
+    /* shorter 3D window, so there is always room above/below to scroll the page */
+    .asset-viewer { height: 58vh; min-height: 340px; max-height: 520px; }
+
+    .asset-nav { width: 34px; height: 34px; font-size: 22px; line-height: 30px; }
+    .asset-nav-prev { left: 6px; }
+    .asset-nav-next { right: 6px; }
+
+    /* finger-sized buttons (Apple recommends at least 44px) */
+    .asset-move, .asset-subtab, .gallery-tab { min-height: 44px; }
+    .asset-thumbs { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
+
+    /* slimmer navigation bar */
+    .navbar { padding: 8px 8px; gap: 6px; }
+    .logo { font-size: 17px; gap: 8px; }
+    .logo img { width: 32px; height: 32px; }
+    .navbar ul { gap: 2px 4px; }
+    .navbar a { font-size: 13px; padding: 6px 10px; }
+
+    /* while the 3D window is on screen, Dottie gets small and her bubble steps aside */
+    body.assets3d-onscreen #dino-companion { width: 84px; height: 84px; opacity: 0.85; }
+    body.assets3d-onscreen #dino-message { opacity: 0 !important; visibility: hidden; }
+}
+
+/* A World of Imagination card: the title-page animation fills the picture area */
+.project-image .woi-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    background: #05060f;
+}

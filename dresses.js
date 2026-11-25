@@ -76,7 +76,8 @@ const VIS = {
 };
 const MOUTH_KEYS = ['viseme_aa', 'viseme_E', 'viseme_I', 'viseme_O', 'viseme_U', 'mouthClose'];
 
-const SPIN_SECONDS = 16;   // one full turn, same speed as the dresses' Blender spin
+const SPIN_SECONDS = 16;
+const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;   // phones & tablets   // one full turn, same speed as the dresses' Blender spin
 const loader = new GLTFLoader();
 let hdrPromise = null;      // the HDRI photo is downloaded once and shared
 
@@ -115,6 +116,11 @@ class AssetViewer {
         this.started = false; this.onScreen = true; this.dragging = false; this.token = 0;
         this.dir = kind === 'dress' ? './models/3d-dresses/' : './models/3d-characters/';
         this.makeThumbs();
+        this.makeArrows();
+        const hint = panel.querySelector('.asset-hint');
+        if (hint) hint.innerHTML = IS_TOUCH
+            ? '<i class="fa-solid fa-hand-pointer"></i> Swipe to change · two fingers to turn &amp; zoom'
+            : '<i class="fa-solid fa-hand-pointer"></i> Drag to turn · scroll to zoom';
         if (kind === 'character') {
             this.hintEl = document.createElement('p');
             this.hintEl.className = 'asset-speak-hint';
@@ -134,8 +140,45 @@ class AssetViewer {
         });
     }
 
+    // small ‹ › buttons on the sides of the 3D window
+    makeArrows() {
+        [['prev', '‹', -1, 'Previous'], ['next', '›', 1, 'Next']].forEach(([cls, ch, step, label]) => {
+            const b = document.createElement('button');
+            b.className = `asset-nav asset-nav-${cls}`;
+            b.setAttribute('aria-label', label);
+            b.textContent = ch;
+            b.addEventListener('click', (e) => { e.stopPropagation(); this.step(step); });
+            this.viewerEl.appendChild(b);
+        });
+    }
+
+    step(dir) {
+        const n = this.items.length;
+        this.show(((this.index ?? 0) + dir + n) % n);   // loops round at the ends
+        const t = this.thumbsEl.children[this.index];
+        if (t) t.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    }
+
+    // Phones: one finger swiping sideways = next/previous; two fingers = turn & zoom.
+    // Up/down swipes still scroll the page.
+    setupSwipe(el) {
+        let start = null, fingers = 0;
+        el.addEventListener('touchstart', (e) => {
+            fingers = e.touches.length;
+            start = fingers === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: performance.now() } : null;
+        }, { passive: true });
+        el.addEventListener('touchend', (e) => {
+            if (!start || fingers !== 1 || e.changedTouches.length !== 1) { start = null; return; }
+            const dx = e.changedTouches[0].clientX - start.x, dy = e.changedTouches[0].clientY - start.y;
+            const quick = performance.now() - start.t < 800;
+            if (quick && Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5) this.step(dx < 0 ? 1 : -1);
+            start = null;
+        }, { passive: true });
+    }
+
     // called whenever this window becomes visible
     open() {
+        if (this.kind === 'character') getLines();      // fetch the greeting texts early
         if (!this.started) { this.started = true; this.init(); this.show(0); }
         requestAnimationFrame(() => this.resize());
     }
@@ -180,6 +223,11 @@ class AssetViewer {
         this.controls = new OrbitControls(this.camera, r.domElement);
         this.controls.enableDamping = true;
         this.controls.enablePan = false;
+        if (IS_TOUCH) {
+            this.controls.touches = { ONE: null, TWO: THREE.TOUCH.DOLLY_ROTATE };
+            r.domElement.style.touchAction = 'pan-y';     // one finger up/down scrolls the page
+            this.setupSwipe(r.domElement);
+        }
         this.controls.addEventListener('start', () => { this.dragging = true; });
         this.controls.addEventListener('end',   () => { this.dragging = false; });
 
@@ -191,6 +239,7 @@ class AssetViewer {
 
     show(i) {
         const [file, name, role] = this.items[i];
+        this.index = i;
         [...this.thumbsEl.children].forEach((b, j) => b.classList.toggle('active', j === i));
         this.titleEl.textContent = name;
         if (this.subEl) this.subEl.textContent = role || '';
@@ -286,18 +335,16 @@ class AssetViewer {
         });
     }
 
-    async speak(btn) {
+    // The sound must start inside the tap itself, or iPhones block it,
+    // so the audio plays first and the lip-sync timings join a moment later.
+    speak(btn) {
         this.stopSpeaking();
         const [lang, flag, langName] = LANGS[this.langIdx];
         const file = this.file;
         const base = `${VOICE_DIR}${lang}/${file}`;
-        const [lines, cues] = await Promise.all([
-            getLines(),
-            fetch(base + '.json').then((r) => r.json()).then((j) => j.mouthCues).catch(() => null),
-        ]);
-        if (file !== this.file) return;                 // switched character meanwhile
         const audio = new Audio(base + '.mp3');
-        this.speech = { audio, cues };
+        audio.setAttribute('playsinline', '');
+        const sp = this.speech = { audio, cues: null };
         btn.classList.add('active');
 
         // pets move their body while talking; teachers stay in idle
@@ -307,7 +354,7 @@ class AssetViewer {
             this.speakAction.setLoop(THREE.LoopRepeat, Infinity).play();
         }
         const done = () => {
-            if (!this.speech || this.speech.audio !== audio) return;
+            if (this.speech !== sp) return;
             this.speech = null;
             btn.classList.remove('active');
             if (this.speakAction) { this.speakAction.fadeOut(0.3); this.speakAction = null; this.idle.reset().fadeIn(0.3).play(); }
@@ -316,8 +363,12 @@ class AssetViewer {
         audio.addEventListener('error', done, { once: true });
         audio.play().catch(done);
 
+        fetch(base + '.json').then((r) => r.json()).then((j) => { sp.cues = j.mouthCues; }).catch(() => {});
         this.langIdx = (this.langIdx + 1) % LANGS.length;   // next tap = next language
-        this.showHint({ flag, langName, text: lines[file][lang] }, LANGS[this.langIdx]);
+        const next = LANGS[this.langIdx];
+        getLines().then((lines) => {
+            if (this.file === file) this.showHint({ flag, langName, text: lines[file][lang] }, next);
+        });
     }
 
     stopSpeaking() {
@@ -383,13 +434,22 @@ class AssetViewer {
         const box = new THREE.Box3().setFromObject(obj, true);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
-        const across = Math.hypot(size.x, size.z);
         const fov = THREE.MathUtils.degToRad(this.camera.fov);
-        const fitH = (size.y / 2) / Math.tan(fov / 2);
-        const fitW = (across / 2) / Math.tan(fov / 2) / this.camera.aspect;
-        const dist = Math.max(fitH, fitW) * 1.15;
+        let dist;
+        if (this.kind === 'character') {
+            // characters: fit their height (and their widest side), filling most of the window
+            const across = Math.max(size.x, size.z);
+            const fitH = (size.y / 2) / Math.tan(fov / 2);
+            const fitW = (across / 2) / Math.tan(fov / 2) / this.camera.aspect;
+            dist = Math.max(fitH, fitW) * 1.06 + size.z / 2;
+        } else {
+            const across = Math.hypot(size.x, size.z);
+            const fitH = (size.y / 2) / Math.tan(fov / 2);
+            const fitW = (across / 2) / Math.tan(fov / 2) / this.camera.aspect;
+            dist = Math.max(fitH, fitW) * 1.15;
+        }
         this.controls.target.copy(center);
-        this.camera.position.set(center.x, center.y + size.y * 0.05, center.z + dist);
+        this.camera.position.set(center.x, center.y + size.y * (this.kind === 'character' ? 0.02 : 0.05), center.z + dist);
         this.camera.near = dist / 100; this.camera.far = dist * 10; this.camera.updateProjectionMatrix();
         this.controls.minDistance = dist * 0.35;
         this.controls.maxDistance = dist * 2;
@@ -446,6 +506,12 @@ const viewers = {
 };
 let activePanel = 'panel-dresses';
 
+// Phones: shrink the dino companion and hide her speech bubble while a 3D window is on screen,
+// so they don't cover the buttons.
+new IntersectionObserver(([e]) => {
+    document.body.classList.toggle('assets3d-onscreen', e.isIntersecting && e.target.offsetParent !== null);
+}, { threshold: 0.15 }).observe(document.getElementById('assets3d'));
+
 // opening the 3D Assets tab starts the sub-section that is showing
 document.querySelector('.gallery-tab[data-category="assets3d"]')
     .addEventListener('click', () => viewers[activePanel].open());
@@ -459,3 +525,13 @@ document.querySelectorAll('.asset-subtab').forEach((btn) => {
         viewers[activePanel].open();
     });
 });
+
+// ---------------------------------------------------------------- WOI project card
+// The A World of Imagination card plays its title-page clip only while it is on screen.
+const woiClip = document.querySelector('.woi-preview');
+if (woiClip) {
+    new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) { woiClip.preload = 'auto'; woiClip.play().catch(() => {}); }
+        else woiClip.pause();
+    }, { threshold: 0.3 }).observe(woiClip);
+}
