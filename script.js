@@ -820,9 +820,13 @@ dinoContainer.addEventListener("click", (event) => {
             // Find Dottie's current position
             const dinoRect = dinoContainer.getBoundingClientRect();
 
-            // Position the menu above her
+            // Position the menu above her, but keep it fully on the screen
+            // (on phones Dottie stands near the right edge, which cut the menu off)
+            const menuW = dinoMenu.offsetWidth || 210;
+            const wantLeft = dinoRect.left + dinoRect.width / 2 - menuW / 2;
+            const screenW = document.documentElement.clientWidth;
             dinoMenu.style.left =
-                `${dinoRect.left + dinoRect.width / 2 - 105}px`;
+                `${Math.min(Math.max(8, wantLeft), screenW - menuW - 8)}px`;
 
             dinoMenu.style.top =
                 `${Math.max(10, dinoRect.top - dinoMenu.offsetHeight - 15)}px`;

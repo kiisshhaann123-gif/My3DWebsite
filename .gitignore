@@ -12,3 +12,6 @@
 
 # Duplicate dress removed from the list
 models/3d-dresses/G_clothe11.glb
+
+# Backup copies (moved here by the tidy-up)
+backups/
