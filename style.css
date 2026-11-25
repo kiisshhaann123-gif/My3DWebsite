@@ -1674,3 +1674,17 @@ html.no-webgl #hero-3d, html.no-webgl #dino-companion canvas { display: none; }
 
 /* the dino's 3D drawing always fits its box, whatever size the box is */
 #dino-companion canvas { width: 100% !important; height: 100% !important; }
+
+/* "Tap to try again" button when a model couldn't load */
+.asset-loading .asset-retry {
+    margin-top: 10px;
+    padding: 10px 18px;
+    min-height: 44px;
+    border: 0;
+    border-radius: 999px;
+    background: #252b3b;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    pointer-events: auto;
+}

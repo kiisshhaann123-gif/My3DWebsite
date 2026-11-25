@@ -98,6 +98,33 @@ function loadHDRI() {
     return hdrPromise;
 }
 
+// Downloads a model with progress. GitHub Pages sends .glb files compressed (gzip): the size it
+// reports is the compressed size, so "loaded / total" went past 100%. We only show a percentage
+// when the size is the real one, otherwise how many MB have arrived.
+// Calls onStall() if no data arrives for 15 seconds.
+async function downloadModel(url, signal, onProgress, onStall) {
+    const res = await fetch(url, { signal });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const compressed = !!res.headers.get('content-encoding');
+    const total = compressed ? 0 : parseInt(res.headers.get('content-length') || '0', 10);
+    const reader = res.body.getReader();
+    const parts = []; let got = 0, stallTimer;
+    const armStall = () => { clearTimeout(stallTimer); stallTimer = setTimeout(onStall, 15000); };
+    armStall();
+    try {
+        for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            parts.push(value); got += value.length; armStall();
+            onProgress(total ? `Loading… ${Math.min(99, Math.round(got / total * 100))}%`
+                             : `Loading… ${(got / 1e6).toFixed(1)} MB`);
+        }
+    } finally { clearTimeout(stallTimer); }
+    const buf = new Uint8Array(got); let o = 0;
+    for (const p of parts) { buf.set(p, o); o += p.length; }
+    return buf.buffer;
+}
+
 function prettyMove(name) {
     return name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -235,6 +262,12 @@ class AssetViewer {
         this.controls.addEventListener('end',   () => { this.dragging = false; });
 
         new IntersectionObserver(([e]) => { this.onScreen = e.isIntersecting; }).observe(this.viewerEl);
+        // phones can reset the 3D when memory runs low: wait for it to come back, then reload
+        r.domElement.addEventListener('webglcontextlost', (e) => {
+            e.preventDefault();
+            this.loadingEl.classList.add('show'); this.loadingTx.textContent = 'Reloading 3D…';
+        });
+        r.domElement.addEventListener('webglcontextrestored', () => this.show(this.index ?? 0));
         window.addEventListener('resize', () => this.resize());
         this.resize();
         r.setAnimationLoop(() => this.tick());
@@ -276,10 +309,32 @@ class AssetViewer {
         this.file = file;
         if (this.hintEl) this.hintEl.innerHTML = '';
         this.loadingEl.classList.add('show');
-        this.loadingTx.textContent = 'Loading… 0%';
+        this.loadingTx.textContent = 'Loading…';
         const token = ++this.token;   // ignore older loads if you click quickly
 
-        loader.load(this.dir + file + '.glb', (gltf) => {
+        this.load(file, token, 0);
+    }
+
+    // Fetch + build one model. Only the newest pick is downloaded: picking another item
+    // cancels the old download, so they don't share the phone's bandwidth.
+    load(file, token, attempt) {
+        if (this.abort) this.abort.abort();
+        const ac = this.abort = new AbortController();
+        const url = this.dir + file + '.glb';
+        const fail = (why) => {
+            if (token !== this.token) return;                 // an old pick: ignore
+            if (attempt === 0) { this.load(file, token, 1); return; }   // try once more by itself
+            console.error('Could not load', file, why);
+            this.loadingTx.innerHTML = 'Couldn\'t load this model<br><button class="asset-retry">Tap to try again</button>';
+            this.loadingEl.querySelector('.asset-retry').onclick = () => {
+                this.loadingTx.textContent = 'Loading…'; this.load(file, token, 1);
+            };
+        };
+        downloadModel(url, ac.signal,
+            (msg) => { if (token === this.token) this.loadingTx.textContent = msg; },
+            () => ac.abort())                    // stalled: cancel, and the retry below takes over
+        .then((buf) => new Promise((ok, bad) => loader.parse(buf, this.dir, ok, bad)))
+        .then((gltf) => {
             if (token !== this.token) { this.dispose(gltf.scene); return; }
             if (this.current) { this.turntable.remove(this.current); this.dispose(this.current); }
             if (this.mixer) this.mixer.stopAllAction();
@@ -304,12 +359,8 @@ class AssetViewer {
             this.mixer.update(0);
             this.frame(this.current);
             this.loadingEl.classList.remove('show');
-        }, (p) => {
-            if (p.total) this.loadingTx.textContent = `Loading… ${Math.round(p.loaded / p.total * 100)}%`;
-        }, (err) => {
-            console.error('Could not load', file, err);
-            this.loadingTx.textContent = 'Could not load this model';
-        });
+        })
+        .catch((err) => fail(err));             // old picks are ignored inside fail()
     }
 
     // Dresses with sheer parts are drawn in two passes: solid cloth first (writes depth,
