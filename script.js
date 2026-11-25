@@ -1270,30 +1270,17 @@ contactForm.addEventListener("submit", async function(event) {
     }
 
 });
-// BACK TO TOP BUTTON
-
+// BACK TO TOP BUTTON - removed from the page.
+// (The code is skipped when the button isn't there, so nothing after it breaks.)
 const backToTopButton = document.getElementById("back-to-top");
-
-// Show button when scrolling down
-window.addEventListener("scroll", function() {
-
-    if (window.scrollY > 300) {
-        backToTopButton.classList.add("show");
-    } else {
-        backToTopButton.classList.remove("show");
-    }
-
-});
-
-// Scroll smoothly to the top when clicked
-backToTopButton.addEventListener("click", function() {
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
+if (backToTopButton) {
+    window.addEventListener("scroll", function () {
+        backToTopButton.classList.toggle("show", window.scrollY > 300);
     });
-
-});
+    backToTopButton.addEventListener("click", function () {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+}
 // SCROLL PROGRESS BAR
 
 const scrollProgress = document.getElementById("scroll-progress");

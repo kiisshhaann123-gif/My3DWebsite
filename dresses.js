@@ -320,6 +320,10 @@ class AssetViewer {
             };
         };
         const cached = this.cache.get(url);
+        if (this.preloading && this.preloading.url !== url) {          // all bandwidth to what you picked
+            this.preloading.ac.abort(); this.cache.delete(this.preloading.url); this.preloading = null;
+        }
+        clearTimeout(this.preloadTimer);
         (cached || downloadModel(url, ac.signal,
             (msg) => { if (token === this.token) this.loadingTx.textContent = msg; },
             () => ac.abort()))                   // stalled: cancel, and the retry below takes over
@@ -390,14 +394,23 @@ class AssetViewer {
     }
 
     // quietly download the next item in the list, so tapping › shows it straight away
+    // starts 2 s after an item appears, and is cancelled if you pick something else
     preloadNext() {
-        const next = this.items[((this.index ?? 0) + 1) % this.items.length][0];
-        const url = (IS_PHONE ? this.phoneDir : this.dir) + next + '.glb';
-        if (this.cache.has(url)) return;
-        const p = fetch(url, { priority: 'low' })
-            .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error('HTTP ' + r.status))));
-        p.catch(() => this.cache.delete(url));   // a failed preload is simply forgotten
-        this.remember(url, p);
+        clearTimeout(this.preloadTimer);
+        const token = this.token;
+        this.preloadTimer = setTimeout(() => {
+            if (token !== this.token) return;
+            const next = this.items[((this.index ?? 0) + 1) % this.items.length][0];
+            const url = (IS_PHONE ? this.phoneDir : this.dir) + next + '.glb';
+            if (this.cache.has(url)) return;
+            const ac = new AbortController();
+            const p = fetch(url, { priority: 'low', signal: ac.signal })
+                .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error('HTTP ' + r.status))));
+            this.preloading = { url, ac };
+            p.then(() => { if (this.preloading && this.preloading.url === url) this.preloading = null; },
+                   () => { this.cache.delete(url); });   // a cancelled or failed preload is simply forgotten
+            this.remember(url, p);
+        }, 2000);
     }
 
     // Dresses with sheer parts are drawn in two passes: solid cloth first (writes depth,
