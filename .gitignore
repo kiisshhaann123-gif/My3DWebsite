@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Original Style3D exports (FBX, 4K textures, PSDs) - the site uses models/3d-dresses instead
+3D_dresses/
+
+# Claude's scratch files and backup copies
+.tmp_check/
+*-before-*.js
+*-before-*.html
+*-before-*.css
+
+# Duplicate dress removed from the list
+models/3d-dresses/G_clothe11.glb

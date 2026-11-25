@@ -201,6 +201,11 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
             <i class="fa-solid fa-video"></i>
             Time-lapse Videos
         </button>
+
+        <button class="gallery-tab" data-category="assets3d">
+            <i class="fa-solid fa-cube"></i>
+            3D Assets
+        </button>
     </div>
 
     <!-- SKETCHES CONTENT -->
@@ -426,7 +431,45 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
 
 </div>
 
-  
+    <!-- 3D ASSETS CONTENT: two sub-sections, each with its own 3D window -->
+    <div class="gallery-content" id="assets3d">
+
+        <div class="asset-subtabs">
+            <button class="asset-subtab active" data-panel="panel-dresses">
+                <i class="fa-solid fa-shirt"></i> Dresses
+            </button>
+            <button class="asset-subtab" data-panel="panel-characters">
+                <i class="fa-solid fa-paw"></i> Characters
+            </button>
+        </div>
+
+        <!-- DRESSES (made in Style3D) -->
+        <div class="asset-panel active" id="panel-dresses">
+            <div class="asset-viewer-card">
+                <div class="asset-viewer">
+                    <div class="asset-loading"><div class="asset-spinner"></div><span class="asset-loading-text">Loading…</span></div>
+                    <p class="asset-hint"><i class="fa-solid fa-hand-pointer"></i> Drag to look around · scroll to zoom</p>
+                </div>
+                <h3 class="asset-title"></h3>
+            </div>
+            <div class="asset-thumbs"></div>
+        </div>
+
+        <!-- CHARACTERS (FUN LINGO app) -->
+        <div class="asset-panel" id="panel-characters">
+            <div class="asset-viewer-card">
+                <div class="asset-viewer">
+                    <div class="asset-loading"><div class="asset-spinner"></div><span class="asset-loading-text">Loading…</span></div>
+                    <p class="asset-hint"><i class="fa-solid fa-hand-pointer"></i> Drag to look around · scroll to zoom</p>
+                </div>
+                <h3 class="asset-title"></h3>
+                <p class="asset-subtitle"></p>
+                <div class="asset-moves"></div>
+            </div>
+            <div class="asset-thumbs"></div>
+        </div>
+
+    </div>
 
 </section>
 <!-- ARTWORK LIGHTBOX -->
@@ -575,6 +618,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
 
 <script type="module" src="./script.js"></script>
 <script type="module" src="./fire.js"></script>
+<script type="module" src="./dresses.js"></script>
 
 <footer class="footer">
     <p>&copy; 2026 The Creative Den. All rights reserved.</p>
