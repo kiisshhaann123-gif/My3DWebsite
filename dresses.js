@@ -78,6 +78,10 @@ const MOUTH_KEYS = ['viseme_aa', 'viseme_E', 'viseme_I', 'viseme_O', 'viseme_U',
 
 const SPIN_SECONDS = 16;
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;   // phones & tablets
+// Phones get lighter copies of the models (1024 px WebP textures, compact vertex data) from the
+// "-mobile" folders. Tablets (every iPad: shortest side 744 px or more), laptops and desktops
+// load the original files, exactly as before.
+const IS_PHONE = IS_TOUCH && Math.min(screen.width, screen.height) < 600;
 // Can this browser show 3D at all? (three.js needs WebGL 2)
 const HAS_3D = (() => { try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; } })();   // one full turn, same speed as the dresses' Blender spin
 const loader = new GLTFLoader();
@@ -143,7 +147,9 @@ class AssetViewer {
         this.loadingEl = panel.querySelector('.asset-loading');
         this.loadingTx = panel.querySelector('.asset-loading-text');
         this.started = false; this.onScreen = true; this.dragging = false; this.token = 0;
-        this.dir = kind === 'dress' ? './models/3d-dresses/' : './models/3d-characters/';
+        this.dir = kind === 'dress' ? './models/3d-dresses/' : './models/3d-characters/';   // thumbnails + full models
+        this.phoneDir = this.dir.replace(/\/$/, '-mobile/');                                   // light copies for phones
+        this.cache = new Map();   // downloaded (or preloaded) models, newest few kept
         this.makeThumbs();
         this.makeArrows();
         const hint = panel.querySelector('.asset-hint');
@@ -320,7 +326,8 @@ class AssetViewer {
     load(file, token, attempt) {
         if (this.abort) this.abort.abort();
         const ac = this.abort = new AbortController();
-        const url = this.dir + file + '.glb';
+        // phones: light copy first; if that ever fails, the original file on the second try
+        const url = (IS_PHONE && attempt === 0 ? this.phoneDir : this.dir) + file + '.glb';
         const fail = (why) => {
             if (token !== this.token) return;                 // an old pick: ignore
             if (attempt === 0) { this.load(file, token, 1); return; }   // try once more by itself
@@ -330,9 +337,11 @@ class AssetViewer {
                 this.loadingTx.textContent = 'Loading…'; this.load(file, token, 1);
             };
         };
-        downloadModel(url, ac.signal,
+        const cached = this.cache.get(url);
+        (cached || downloadModel(url, ac.signal,
             (msg) => { if (token === this.token) this.loadingTx.textContent = msg; },
-            () => ac.abort())                    // stalled: cancel, and the retry below takes over
+            () => ac.abort()))                   // stalled: cancel, and the retry below takes over
+        .then((buf) => { this.remember(url, Promise.resolve(buf)); return buf; })
         .then((buf) => new Promise((ok, bad) => loader.parse(buf, this.dir, ok, bad)))
         .then((gltf) => {
             if (token !== this.token) { this.dispose(gltf.scene); return; }
@@ -359,8 +368,54 @@ class AssetViewer {
             this.mixer.update(0);
             this.frame(this.current);
             this.loadingEl.classList.remove('show');
+            if (this.kind === 'character') this.preloadVoices(file);
+            this.preloadNext();
         })
         .catch((err) => fail(err));             // old picks are ignored inside fail()
+    }
+
+    // Download this character's greeting in every language (about 50 KB each) as soon as it
+    // appears, so tapping Speak plays straight away instead of waiting for the internet.
+    preloadVoices(file) {
+        this.voices = this.voices || new Map();
+        if (this.voices.has(file)) return;
+        const set = {};
+        this.voices.set(file, set);
+        for (const [lang] of LANGS) {
+            const base = `${VOICE_DIR}${lang}/${file}`;
+            set[lang] = {
+                url: fetch(base + '.mp3').then((r) => (r.ok ? r.blob() : Promise.reject()))
+                    .then((b) => URL.createObjectURL(b)).catch(() => null),
+                cues: fetch(base + '.json').then((r) => r.json()).then((j) => j.mouthCues).catch(() => null),
+                ready: null,     // filled in below once the sound is downloaded
+            };
+            set[lang].url.then((u) => { set[lang].ready = u; });
+            set[lang].cues.then((c) => { set[lang].cuesReady = c; });
+        }
+        // keep the voices of the last 3 characters only
+        while (this.voices.size > 3) {
+            const [old, s] = this.voices.entries().next().value;
+            Object.values(s).forEach((v) => v.ready && URL.revokeObjectURL(v.ready));
+            this.voices.delete(old);
+        }
+    }
+
+    // keep the last few downloads in memory so going back and forth is instant
+    remember(url, promise) {
+        this.cache.delete(url);
+        this.cache.set(url, promise);
+        while (this.cache.size > 3) this.cache.delete(this.cache.keys().next().value);
+    }
+
+    // quietly download the next item in the list, so tapping › shows it straight away
+    preloadNext() {
+        const next = this.items[((this.index ?? 0) + 1) % this.items.length][0];
+        const url = (IS_PHONE ? this.phoneDir : this.dir) + next + '.glb';
+        if (this.cache.has(url)) return;
+        const p = fetch(url, { priority: 'low' })
+            .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error('HTTP ' + r.status))));
+        p.catch(() => this.cache.delete(url));   // a failed preload is simply forgotten
+        this.remember(url, p);
     }
 
     // Dresses with sheer parts are drawn in two passes: solid cloth first (writes depth,
@@ -423,9 +478,11 @@ class AssetViewer {
         const [lang, flag, langName] = LANGS[this.langIdx];
         const file = this.file;
         const base = `${VOICE_DIR}${lang}/${file}`;
-        const audio = new Audio(base + '.mp3');
+        const pre = this.voices && this.voices.get(file) && this.voices.get(file)[lang];
+        const audio = new Audio(pre && pre.ready ? pre.ready : base + '.mp3');   // ready = already on the phone
         audio.setAttribute('playsinline', '');
-        const sp = this.speech = { audio, cues: null };
+        audio.preload = 'auto';
+        const sp = this.speech = { audio, cues: (pre && pre.cuesReady) || null };
         btn.classList.add('active');
 
         // pets move their body while talking; teachers stay in idle
@@ -444,7 +501,7 @@ class AssetViewer {
         audio.addEventListener('error', done, { once: true });
         audio.play().catch(done);
 
-        fetch(base + '.json').then((r) => r.json()).then((j) => { sp.cues = j.mouthCues; }).catch(() => {});
+        if (!sp.cues) fetch(base + '.json').then((r) => r.json()).then((j) => { sp.cues = j.mouthCues; }).catch(() => {});
         this.langIdx = (this.langIdx + 1) % LANGS.length;   // next tap = next language
         const next = LANGS[this.langIdx];
         getLines().then((lines) => {
