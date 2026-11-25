@@ -1643,3 +1643,34 @@ body {
     display: block;
     background: #05060f;
 }
+
+/* ================= WORKS ON ANY SCREEN ================= */
+
+/* 3D windows never taller than ~75% of the screen (svh = height with the phone's toolbars showing) */
+.asset-viewer { height: min(600px, 75vh); height: min(600px, 75svh); }
+
+@media (max-width: 768px) {
+    .asset-viewer { height: min(520px, 62vh); height: min(520px, 62svh); min-height: 0; max-height: none; }
+}
+
+/* short screens: phones held sideways, small laptops */
+@media (max-height: 500px) {
+    .asset-viewer { height: 78vh; height: 78svh; min-height: 0; }
+    .navbar { height: auto; padding: 4px 16px; flex-direction: row; gap: 8px; }
+    .logo { font-size: 16px; gap: 8px; }
+    .logo img { width: 30px; height: 30px; }
+    .navbar ul { gap: 2px 4px; flex-wrap: wrap; justify-content: flex-end; }
+    .navbar a { font-size: 13px; padding: 5px 10px; }
+    .hero { height: min(300px, 65vh); height: min(300px, 65svh); }
+    #dino-companion { width: 90px; height: 90px; }
+    #dino-message { width: 150px; padding: 18px 12px; font-size: 12px; }
+}
+
+/* no 3D in this browser: show the item's picture instead */
+.asset-viewer.no-3d { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: default; }
+.asset-fallback-img { max-height: 78%; max-width: 70%; object-fit: contain; }
+.asset-fallback-note { margin: 10px 20px 0; font-size: 13px; color: #6b7385; }
+html.no-webgl #hero-3d, html.no-webgl #dino-companion canvas { display: none; }
+
+/* the dino's 3D drawing always fits its box, whatever size the box is */
+#dino-companion canvas { width: 100% !important; height: 100% !important; }

@@ -77,7 +77,9 @@ const VIS = {
 const MOUTH_KEYS = ['viseme_aa', 'viseme_E', 'viseme_I', 'viseme_O', 'viseme_U', 'mouthClose'];
 
 const SPIN_SECONDS = 16;
-const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;   // phones & tablets   // one full turn, same speed as the dresses' Blender spin
+const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;   // phones & tablets
+// Can this browser show 3D at all? (three.js needs WebGL 2)
+const HAS_3D = (() => { try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; } })();   // one full turn, same speed as the dresses' Blender spin
 const loader = new GLTFLoader();
 let hdrPromise = null;      // the HDRI photo is downloaded once and shared
 
@@ -178,12 +180,13 @@ class AssetViewer {
 
     // called whenever this window becomes visible
     open() {
-        if (this.kind === 'character') getLines();      // fetch the greeting texts early
+        if (this.kind === 'character' && HAS_3D) getLines();      // fetch the greeting texts early
         if (!this.started) { this.started = true; this.init(); this.show(0); }
         requestAnimationFrame(() => this.resize());
     }
 
     init() {
+        if (!HAS_3D) { this.initNo3D(); return; }
         const r = this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         r.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         r.outputColorSpace = THREE.SRGBColorSpace;
@@ -237,9 +240,32 @@ class AssetViewer {
         r.setAnimationLoop(() => this.tick());
     }
 
+    // No 3D in this browser: show the picture of each item instead, with a short note
+    initNo3D() {
+        this.no3d = true;
+        this.viewerEl.classList.add('no-3d');
+        this.fallbackImg = document.createElement('img');
+        this.fallbackImg.className = 'asset-fallback-img';
+        this.viewerEl.prepend(this.fallbackImg);
+        const note = document.createElement('p');
+        note.className = 'asset-fallback-note';
+        note.textContent = "3D isn't supported in this browser – try opening the page in Chrome or Safari to turn the models around.";
+        this.viewerEl.appendChild(note);
+        const hint = this.viewerEl.querySelector('.asset-hint');
+        if (hint) hint.style.display = 'none';
+    }
+
     show(i) {
         const [file, name, role] = this.items[i];
         this.index = i;
+        if (this.no3d) {
+            [...this.thumbsEl.children].forEach((b, j) => b.classList.toggle('active', j === i));
+            this.titleEl.textContent = name;
+            if (this.subEl) this.subEl.textContent = role || '';
+            this.fallbackImg.src = `${this.dir}thumbs/${file}.png`;
+            this.fallbackImg.alt = name;
+            return;
+        }
         [...this.thumbsEl.children].forEach((b, j) => b.classList.toggle('active', j === i));
         this.titleEl.textContent = name;
         if (this.subEl) this.subEl.textContent = role || '';

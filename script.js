@@ -1,6 +1,24 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// Some phones / in-app browsers can't run WebGL (3D). Creating a 3D renderer there throws an
+// error, which used to stop this whole file - so the gallery tabs and fade-ins below never ran.
+// makeRenderer() returns a harmless stand-in instead, so everything that isn't 3D still works.
+function makeRenderer(options) {
+    try {
+        return new THREE.WebGLRenderer(options);
+    } catch (err) {
+        console.warn('3D not supported here - skipping the 3D parts', err);
+        document.documentElement.classList.add('no-webgl');
+        const el = document.createElement('div');
+        const stand_in = new Proxy({ domElement: el }, {
+            get: (t, k) => (k in t ? t[k] : () => stand_in),   // any method: does nothing
+            set: (t, k, v) => { t[k] = v; return true; },
+        });
+        return stand_in;
+    }
+}
 import {
     startRealisticFire,
     stopRealisticFire
@@ -430,7 +448,7 @@ const maxPixelRatio = () => Math.min(window.devicePixelRatio, isMobile() ? 1.5 :
 // Dottie's size on screen (must match #dino-companion in style.css)
 const dinoSize = () => (isMobile() ? 150 : 230);
 
-const dinoRenderer = new THREE.WebGLRenderer({
+const dinoRenderer = makeRenderer({
     alpha: true,
     antialias: !isMobile(),
     powerPreference: "high-performance"
@@ -466,7 +484,7 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, 7.8);
 
 // Create renderer
-const renderer = new THREE.WebGLRenderer({
+const renderer = makeRenderer({
     antialias: !isMobile(),
     powerPreference: "high-performance"
 });
@@ -934,7 +952,11 @@ const observer = new IntersectionObserver((entries) => {
     });
 
 }, {
-    threshold: 0.15
+    // Fade a section in when its top edge is 15% up the screen.
+    // (The old "15% of the section must be visible" never happened for very tall
+    //  sections like the Art Gallery on narrow phones, so they stayed invisible.)
+    threshold: 0,
+    rootMargin: "0px 0px -15% 0px"
 });
 
 sections.forEach((section) => {

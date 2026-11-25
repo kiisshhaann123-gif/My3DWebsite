@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <noscript><style>.content-section, .hidden { opacity: 1 !important; transform: none !important; }</style></noscript>
 
     <title>Kishan Sharma | Artist, Financial enthusiast & Creative Developer</title>
     <meta name="description" content="Explore my creative portfolio featuring digital illustrations, sketches, creative projects, and web development.">
@@ -632,6 +633,31 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
     <i class="fa-solid fa-arrow-up"></i>
 </button>
 
+<script>
+/* Safety net: every section and gallery card you have scrolled to is shown, even if the
+   fade-in trigger was missed (a fast flick on a phone) or another script failed to load. */
+(function () {
+    var SEL = '.content-section, .hidden';
+    function reveal() {
+        var limit = window.innerHeight * 0.9, els = document.querySelectorAll(SEL);
+        for (var i = 0; i < els.length; i++) {
+            if (!els[i].classList.contains('show') && els[i].getBoundingClientRect().top < limit) els[i].classList.add('show');
+        }
+    }
+    var t;
+    function soon() { clearTimeout(t); t = setTimeout(reveal, 150); }   // runs when scrolling stops
+    window.addEventListener('scroll', soon, { passive: true });
+    window.addEventListener('resize', soon);
+    window.addEventListener('load', reveal);
+    setTimeout(reveal, 1500);
+    if (!('IntersectionObserver' in window)) {                        // very old browsers: no fade at all
+        document.addEventListener('DOMContentLoaded', function () {
+            var els = document.querySelectorAll(SEL);
+            for (var i = 0; i < els.length; i++) els[i].classList.add('show');
+        });
+    }
+})();
+</script>
 <script type="module" src="./script.js"></script>
 <script type="module" src="./fire.js"></script>
 <script type="module" src="./dresses.js"></script>
