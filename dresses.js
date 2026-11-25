@@ -34,6 +34,7 @@ const DRESSES = [
     ['G_clothe11_black',           'Ruffle Sleeve Set – Black'],
     ['G_clothe11_pink',            'Ruffle Sleeve Set – Pink'],
     ['G_clothe12',                 'Red Slip Dress'],
+    ['G_coral_coat_set',           'Coral Coat & Floral Dress'],
 ];
 
 // file name  →  [name, role]
