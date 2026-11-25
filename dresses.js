@@ -245,6 +245,7 @@ class AssetViewer {
         if (this.subEl) this.subEl.textContent = role || '';
         if (this.movesEl) this.movesEl.innerHTML = '';
         this.stopSpeaking();
+        this.moving = false;
         this.langIdx = 0;
         this.file = file;
         if (this.hintEl) this.hintEl.innerHTML = '';
@@ -331,6 +332,7 @@ class AssetViewer {
             if (e.action === this.idle) return;
             e.action.fadeOut(0.3);
             this.idle.reset().fadeIn(0.3).play();
+            this.moving = false;                 // move finished: start turning again
             this.movesEl.querySelectorAll('.asset-move:not(.asset-speak)').forEach((x) => x.classList.remove('active'));
         });
     }
@@ -339,6 +341,8 @@ class AssetViewer {
     // so the audio plays first and the lip-sync timings join a moment later.
     speak(btn) {
         this.stopSpeaking();
+        this.moving = false;                     // speaking replaces any move that was playing
+        this.movesEl.querySelectorAll('.asset-move:not(.asset-speak)').forEach((x) => x.classList.remove('active'));
         const [lang, flag, langName] = LANGS[this.langIdx];
         const file = this.file;
         const base = `${VOICE_DIR}${lang}/${file}`;
@@ -415,6 +419,7 @@ class AssetViewer {
 
     playMove(clip, btn) {
         this.stopSpeaking();
+        this.moving = true;                      // stop turning while the move plays
         this.movesEl.querySelectorAll('.asset-move').forEach((x) => x.classList.remove('active'));
         btn.classList.add('active');
         this.mixer.stopAllAction();
@@ -482,8 +487,8 @@ class AssetViewer {
         if (this.mixer && !this.dragging) this.mixer.update(dt);
         if (this.kind === 'character') this.updateMouth(dt);
         if (this.kind === 'character' && !this.dragging) {
-            if (this.speech) {
-                // while talking: stop turning and gently turn to face the viewer
+            if (this.speech || this.moving) {
+                // while talking or doing a move: stop turning and gently turn to face the viewer
                 const c = this.camera.position, t = this.controls.target;
                 const face = Math.atan2(c.x - t.x, c.z - t.z);
                 let diff = face - this.turntable.rotation.y;
