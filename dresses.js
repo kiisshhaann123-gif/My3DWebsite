@@ -154,7 +154,7 @@ class AssetViewer {
         this.makeArrows();
         const hint = panel.querySelector('.asset-hint');
         if (hint) hint.innerHTML = IS_TOUCH
-            ? '<i class="fa-solid fa-hand-pointer"></i> Swipe to change · two fingers to turn &amp; zoom'
+            ? '<i class="fa-solid fa-hand-pointer"></i> Use ‹ › to change · two fingers to turn &amp; zoom'
             : '<i class="fa-solid fa-hand-pointer"></i> Drag to turn · scroll to zoom';
         if (kind === 'character') {
             this.hintEl = document.createElement('p');
@@ -192,23 +192,6 @@ class AssetViewer {
         this.show(((this.index ?? 0) + dir + n) % n);   // loops round at the ends
         const t = this.thumbsEl.children[this.index];
         if (t) t.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
-    }
-
-    // Phones: one finger swiping sideways = next/previous; two fingers = turn & zoom.
-    // Up/down swipes still scroll the page.
-    setupSwipe(el) {
-        let start = null, fingers = 0;
-        el.addEventListener('touchstart', (e) => {
-            fingers = e.touches.length;
-            start = fingers === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: performance.now() } : null;
-        }, { passive: true });
-        el.addEventListener('touchend', (e) => {
-            if (!start || fingers !== 1 || e.changedTouches.length !== 1) { start = null; return; }
-            const dx = e.changedTouches[0].clientX - start.x, dy = e.changedTouches[0].clientY - start.y;
-            const quick = performance.now() - start.t < 800;
-            if (quick && Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5) this.step(dx < 0 ? 1 : -1);
-            start = null;
-        }, { passive: true });
     }
 
     // called whenever this window becomes visible
@@ -262,7 +245,6 @@ class AssetViewer {
         if (IS_TOUCH) {
             this.controls.touches = { ONE: null, TWO: THREE.TOUCH.DOLLY_ROTATE };
             r.domElement.style.touchAction = 'pan-y';     // one finger up/down scrolls the page
-            this.setupSwipe(r.domElement);
         }
         this.controls.addEventListener('start', () => { this.dragging = true; });
         this.controls.addEventListener('end',   () => { this.dragging = false; });
